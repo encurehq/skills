@@ -9,7 +9,7 @@ step and no `package.json`. The deliverable is a set of `SKILL.md` files that ot
 [`npx skills`](https://github.com/vercel-labs/skills). Each skill encodes a stack convention (a pattern to
 drop into any project on that stack), deliberately **not** glue for one specific repo.
 
-Published as `sanctuarynode/skills` (see the install commands in `README.md`).
+Published as `encurehq/skills` (see the install commands in `README.md`).
 
 ## Layout
 
@@ -31,10 +31,11 @@ Published as `sanctuarynode/skills` (see the install commands in `README.md`).
    project-specific (a glossary, an internal path), say so explicitly and point at the consuming repo rather
    than hardcoding it.
 
-The current skills (`elysia-pattern`, `elysia-zod`, `next-monorepo-pattern`, `i18n-next-intl`) are the
-reference for tone, structure, and description density — read one before writing a new one. `elysia-pattern`
-and `next-monorepo-pattern` also show the pattern for heavier skills: keep `SKILL.md` to the overview and
-rules, and put worked code in `examples/` and long-form detail in `references/`.
+The current skills (`setup-agent-first`, `elysia-pattern`, `elysia-zod`, `next-monorepo-pattern`,
+`next-tanstack-query`, `i18n-next-intl`, `add-issue`) are the reference for tone, structure, and description
+density — read one before writing a new one. `elysia-pattern`, `next-monorepo-pattern`, and
+`setup-agent-first` also show the pattern for heavier skills: keep `SKILL.md` to the overview and rules, and
+put worked code in `examples/` and long-form detail in `references/`.
 
 ## CLI commands
 
@@ -43,8 +44,8 @@ rules, and put worked code in `examples/` and long-form detail in `references/`.
 npx skills add <owner/repo> -l
 
 # Install specific skills from this repo into a consuming project
-npx skills add sanctuarynode/skills --skill <name>     # one skill
-npx skills add sanctuarynode/skills --skill '*'        # all skills
+npx skills add encurehq/skills --skill <name>     # one skill
+npx skills add encurehq/skills --skill '*'        # all skills
 ```
 
 `--skill` / `--agent` take **space-separated** values, not comma-separated. Agent IDs are e.g. `universal`
