@@ -32,7 +32,7 @@ Published as `encurehq/skills` (see the install commands in `README.md`).
    than hardcoding it.
 
 The current skills (`setup-agent-first`, `elysia-pattern`, `elysia-zod`, `next-monorepo-pattern`,
-`next-tanstack-query`, `i18n-next-intl`, `add-issue`) are the reference for tone, structure, and description
+`next-tanstack-query`, `i18n-next-intl`, `add-issues`) are the reference for tone, structure, and description
 density — read one before writing a new one. `elysia-pattern`, `next-monorepo-pattern`, and
 `setup-agent-first` also show the pattern for heavier skills: keep `SKILL.md` to the overview and rules, and
 put worked code in `examples/` and long-form detail in `references/`.
