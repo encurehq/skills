@@ -1,12 +1,12 @@
 ---
 name: add-issues
-description: Use when the user wants to create, file, or publish one or more Linear issues from a plan — says "create a Linear issue for X", "file a ticket for X", "add issues to Linear", "break this into tickets", "write up a plan and put it in Linear", or wants work handed off to a teammate/agent via Linear rather than implemented right now. Requires the Linear MCP server to be connected.
+description: Use when the user wants to create, file, or publish one or more Linear issues from a spec — says "create a Linear issue for X", "file a ticket for X", "add issues to Linear", "spec this out and put it in Linear", "write up a spec and put it in Linear", or wants work handed off to a teammate/agent via Linear rather than implemented right now. Requires the Linear MCP server to be connected.
 argument-hint: "issue description(s) to draft and publish - name a team/project/assignee/priority inline if it isn't the workspace default"
 ---
 
-# Create Linear issues with phased plans
+# Create Linear issues with specs
 
-Draft one or more Linear issues — each a complete, phased execution plan good enough that a teammate's own agent can pick it up cold and execute it, no further back-and-forth — then publish them straight to Linear. This skill only **creates issues**; it never implements anything itself, and no plan it writes ever includes a commit step — whoever executes it decides that on their own.
+Draft one or more Linear issues — each a complete spec synthesized from what's already been discussed, good enough that a teammate's own agent can pick it up cold and turn it into a plan with no further back-and-forth — then publish them straight to Linear. This skill only **creates issues**; it never implements anything itself, and no spec it writes ever includes a commit step — whoever plans and executes it decides that on their own.
 
 ## Step 0 — Require the Linear MCP, fall back if it isn't there
 
@@ -30,40 +30,87 @@ If the request is one broad piece of work, judge whether it's naturally one issu
 
 If an argument names a reference — a spec file path, an existing issue ID/URL, a PR — fetch it and read its full body before drafting anything.
 
-Explore the codebase before drafting any plan:
+Do NOT interview the user for any of this — synthesize the spec entirely from what's already in the conversation and what you find exploring the codebase below.
 
-- Find the files the plan will actually touch. Read them well enough to name exact paths, exact function/component names, and current line ranges — the plan must never say "similar to X" or "the usual pattern," it must show the pattern.
+Explore the codebase before drafting any spec:
+
+- Find the files the spec's implementation decisions will reference. Read them well enough to name exact modules, exact function/component names, and existing interfaces — the spec must never say "similar to X" or "the usual pattern," it must name the pattern.
 - Use the project's own domain vocabulary for naming — if the repo has a glossary or domain-model doc, read it; an issue that calls something by the wrong noun reads as written by someone who doesn't know the codebase.
-- Respect any architecture-decision doc relevant to the area you're touching (an ADR directory, a `docs/decisions/` folder, whatever the repo calls it) — don't draft a plan that silently contradicts one.
-- Look for a prefactoring opportunity that would make the real change easier ("make the change easy, then make the easy change"). If one exists, it becomes that issue's first phase.
+- Respect any architecture-decision doc relevant to the area you're touching (an ADR directory, a `docs/decisions/` folder, whatever the repo calls it) — don't draft a spec that silently contradicts one.
+- Look for a prefactoring opportunity that would make the real change easier ("make the change easy, then make the easy change"). If one exists, name it as an implementation decision.
 
-## Step 2 — Draft each phased plan
+## Step 2 — Draft each spec
 
-For each issue identified in Step 1, structure its description as **phases**, each a complete, checkable unit of work — not a layer-by-layer breakdown (schema-only, then API-only, then UI-only), a **vertical** slice through whatever layers this specific change touches. A phase should be small enough to fit in one fresh context window and leave something genuinely verifiable when it's done.
+For each issue identified in Step 1, sketch out the seams at which the feature will be tested. Existing seams should be preferred to new ones. Use the highest seam possible; if a new seam is needed, propose it at the highest point you can — the fewer seams across the codebase, the better, ideally one. If a seam choice is genuinely ambiguous or would touch a boundary the user hasn't weighed in on, ask via `AskUserQuestion` before writing the spec around it — otherwise proceed without asking.
 
-For each phase, write:
+Then write the issue's description as a spec, using this template:
 
-- **A short, specific title.**
-- **Files** — exact paths, marked `Create:` or `Modify:` (with a line range for `Modify:` where you know it). Never a vague "the relevant component."
-- **Steps** — ordered, concrete actions. Where a step is code, show the actual code (real function names, real types, matching what Step 1 found) — never pseudocode, never "add appropriate validation," never "similar to Task N, repeat the pattern" (the executing agent may read phases out of order and won't have Task N in front of it). Number them or use checkboxes so progress is trackable.
-- **A verification step** — the concrete command or check that proves this phase actually works (a specific test file/name to run, a typecheck, a lint pass, a manual repro to confirm) — not "test the change," the actual command.
+<spec-template>
 
-**Never a commit step.** Every phase ends at verification. Whether and how to commit is left to whoever executes the plan — that's the consuming repo's own convention to apply, not this issue's job to re-decide.
+## Problem Statement
 
-**No placeholders, anywhere.** Never write "TBD," "implement later," "add appropriate error handling," "write tests for the above" without the actual test code, or reference a type/function this issue never defines. A step that describes what to do without showing how is not done — fill it in or cut it.
+The problem being faced, from the user's perspective.
 
-**Completion criteria must be checkable, not vibes.** "Understanding reached" or "properly handled" tells the executing agent nothing about when to stop; "the 3 acceptance criteria below all pass" does. Every phase and the issue as a whole needs a bound the agent can test itself against, not just narrate satisfaction with.
+## Solution
 
-**State the positive, not the prohibition.** Prefer "use `useTransition` for pending state" over "don't use `useState(false)` for pending state" — a banned pattern named in the plan is a pattern now sitting in the executing agent's context, and negation is a weak filter against it. Reserve an explicit "never do X" for a real guardrail (a destructive action, a security boundary), and even then pair it with what to do instead.
+The solution to the problem, from the user's perspective.
+
+## User Stories
+
+A LONG, numbered list of user stories, each in the form:
+
+1. As an <actor>, I want a <feature>, so that <benefit>
+
+This list should be extremely extensive and cover all aspects of the feature.
+
+## Implementation Decisions
+
+A list of implementation decisions made, which can include:
+
+- The modules that will be built/modified
+- The interfaces of those modules that will be modified
+- Technical clarifications
+- Architectural decisions
+- Schema changes
+- API contracts
+- Specific interactions
+
+Do NOT include specific file paths or code snippets — they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
+
+## Testing Decisions
+
+A list of testing decisions, including:
+
+- A description of what makes a good test for this feature (only test external behavior, not implementation details)
+- Which modules/seams will be tested
+- Prior art for the tests (similar tests already in the codebase)
+
+## Out of Scope
+
+What's explicitly out of scope for this spec.
+
+## Further Notes
+
+Any further notes about the feature.
+
+</spec-template>
+
+**No placeholders, anywhere.** Never write "TBD," "implement later," or a User Story/Implementation Decision that describes what to decide without actually deciding it. A section that gestures at content without stating it is not done — fill it in or cut it.
+
+**Completion criteria must be checkable, not vibes.** The spec should give whoever plans from it enough to define a testable "done," not just narrate a vague goal.
+
+**State the positive, not the prohibition.** Prefer "use `useTransition` for pending state" over "don't use `useState(false)` for pending state" — a banned pattern named in the spec is a pattern now sitting in the executing agent's context, and negation is a weak filter against it. Reserve an explicit "never do X" for a real guardrail (a destructive action, a security boundary), and even then pair it with what to do instead.
+
+**Never a commit step, and never a phased task breakdown.** A spec describes the problem, the decisions, and the seams — it leaves *how* to sequence and implement the work, and whether/how to commit, entirely to whoever plans from it later.
 
 ## Step 3 — Self-review before publishing
 
-Re-read every drafted plan once, fresh:
+Re-read every drafted spec once, fresh:
 
-- **Coverage** — does every part of what the user asked for map to a phase in some issue? List any gap and fix it before moving on.
+- **Coverage** — does every part of what the user asked for map to a user story or implementation decision in some issue? List any gap and fix it before moving on.
 - **Placeholder scan** — re-check for the red flags from Step 2. Fix inline, don't just note them.
-- **Consistency** — within each issue, do names, types, and file paths agree across phases? A function called `resolveActiveOrg` in one phase and `getActiveOrganization` in another is a bug the executing agent will trip on. Across issues, watch for the same collision if two issues touch overlapping code.
-- **No embedded commit step** — confirm one didn't slip into any issue.
+- **Consistency** — within each issue, do names, types, and module references agree across sections? A module called `resolveActiveOrg` in one section and `getActiveOrganization` in another is a bug whoever plans from this will trip on. Across issues, watch for the same collision if two issues touch overlapping code.
+- **No file paths/code snippets** other than the prototype-snippet exception, and **no embedded commit step or task breakdown** — confirm neither slipped into any issue.
 
 ## Step 4 — Resolve each issue's fields
 
@@ -76,6 +123,6 @@ For each issue:
 
 ## Step 5 — Publish directly, no confirmation
 
-Once Steps 2-4 are done, create every issue immediately with `mcp__plugin_linear_linear__save_issue` (`team`, `title`, `description` = the full phased plan as Markdown, plus `priority`/`project`/`assignee` per Step 4 — omit `project`/`assignee` entirely when neither was set, never pass a guessed value). Do not show the drafted plan for approval first and do not ask "should I publish this?" — publish, then report. These calls are mandatory — drafting the plan and stopping short of actually creating the issue(s) does not satisfy this skill.
+Once Steps 2-4 are done, create every issue immediately with `mcp__plugin_linear_linear__save_issue` (`team`, `title`, `description` = the full spec as Markdown, plus `priority`/`project`/`assignee` per Step 4 — omit `project`/`assignee` entirely when neither was set, never pass a guessed value). Apply the `ready-for-agent` triage label if the workspace has one — no need for additional triage. Do not show the drafted spec for approval first and do not ask "should I publish this?" — publish, then report. These calls are mandatory — drafting the spec and stopping short of actually creating the issue(s) does not satisfy this skill.
 
 Report back, for every issue created, its identifier as a **clickable Markdown link to its URL** (e.g. `[ENG-123](https://linear.app/...)`) — take the URL verbatim from the `save_issue` response, never construct or guess one. That's the whole report, nothing more elaborate than that list; the link is what lets the user open the issue directly instead of hunting for the identifier in the Linear app. Tell the user to check the issue(s) in Linear themselves if they want to review or adjust the content.
